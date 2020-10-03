@@ -59,8 +59,7 @@ namespace CRMCreateUpdateDeletePlugin
                 //var contactId = (Guid)contact.Attributes["contactid"];
                 fromActivityParty["partyid"] = new EntityReference("systemuser", userId);
                 toActivityParty["partyid"] = new EntityReference("contact", contactId);
-                    // Убедимся, что целевой объект представляет собой случай.
-                    // Если нет, этот плагин был зарегистрирован неправильно
+                    //
                 if (LogicalName == "contact")
                 {
                     email.Attributes["to"] = new Entity[] { toActivityParty };
