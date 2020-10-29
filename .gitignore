@@ -2,3 +2,8 @@
 /CRMCreateUpdateDeletePlugin/CRMCreateUpdateDeletePlugin.csproj
 /CRMCreateUpdateDeletePlugin/CRMCreateUpdateDeletePlugin.sln
 /CRMCreateUpdateDeletePlugin/PluginCUD.pfx
+/CRMAssociateDesociatePlugin/obj/
+/CRMAssociateDesociatePlugin/CRMAssociateDesociatePlugin.csproj
+/CRMAssociateDesociatePlugin/CRMAssociateDesociatePlugin.sln
+/CRMAssociateDesociatePlugin/PluginAD.pfx
+/CRMAssociateDesociatePlugin/.vs/
