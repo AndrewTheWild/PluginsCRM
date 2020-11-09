@@ -11,8 +11,6 @@ namespace CreateEmailPlugin
             IOrganizationServiceFactory factory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
             ITracingService tracingService = (ITracingService)serviceProvider.GetService(typeof(ITracingService));
             var service = factory.CreateOrganizationService(context.UserId);
-            //throw new InvalidPluginExecutionException(context.InputParameters["Subject"].ToString());
-            //throw new InvalidPluginExecutionException(context.MessageName);
             Entity toActivityParty = new Entity("activityparty");
             Entity fromActivityParty = new Entity("activityparty");
             fromActivityParty["partyid"] = context.InputParameters["Sender"];
@@ -26,7 +24,6 @@ namespace CreateEmailPlugin
             email.Attributes["description"] = context.InputParameters["Body"];
             if (context.InputParameters["RegardingContact"] != null)
                 email.Attributes["regardingobjectid"] = context.InputParameters["RegardingContact"];
-            //CreatedEmail.Set(context, 
             service.Create(email);
         }
     }
