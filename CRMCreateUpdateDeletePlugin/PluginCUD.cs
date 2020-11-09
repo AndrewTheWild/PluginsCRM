@@ -1,7 +1,4 @@
-﻿using Microsoft.Crm.Sdk.Messages;
-using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Query;
-
+﻿using Microsoft.Xrm.Sdk;
 using System;
 
 namespace CRMCreateUpdateDeletePlugin
@@ -14,11 +11,13 @@ namespace CRMCreateUpdateDeletePlugin
             IOrganizationServiceFactory factory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
             ITracingService tracingService =(ITracingService)serviceProvider.GetService(typeof(ITracingService));
             IOrganizationService service = factory.CreateOrganizationService(context.UserId);
+            var SendEmailAction = new OrganizationRequest()
+            {
+                RequestName = "new_SendCustomEmailAction"
+            };
+            //
             if (context.InputParameters.Contains("Target"))
             {
-                WhoAmIRequest systemUserRequest = new WhoAmIRequest();
-                WhoAmIResponse systemUserResponse = (WhoAmIResponse)service.Execute(systemUserRequest);
-                Guid userId = systemUserResponse.UserId;
                 Entity email = new Entity("email");
                 Guid contactId;
                 string LogicalName = string.Empty;
@@ -49,50 +48,37 @@ namespace CRMCreateUpdateDeletePlugin
                     LogicalName = entityref.LogicalName;
                 }
                 tracingService.Trace("Project Id is {0}", contactId);
-                //tracingService.Trace(fullName.ToString());
-                //tracingService.Trace(modifiedOn.ToString());
-                //tracingService.Trace(emailAddress.ToString());
-                //
-                //
-                Entity toActivityParty = new Entity("activityparty");
-                Entity fromActivityParty = new Entity("activityparty");
-                //var contactId = (Guid)contact.Attributes["contactid"];
-                fromActivityParty["partyid"] = new EntityReference("systemuser", userId);
-                toActivityParty["partyid"] = new EntityReference("contact", contactId);
-                    //
+                SendEmailAction["Sender"] = new EntityReference("systemuser", context.UserId);
+                SendEmailAction["RecepientEmail"] = new EntityReference("contact", contactId);
                 if (LogicalName == "contact")
                 {
-                    email.Attributes["to"] = new Entity[] { toActivityParty };
-                    email.Attributes["from"] = new Entity[] { fromActivityParty };
                     switch (context.MessageName)
                     {
                         case "Create":
                             var linkContact = $"https://andriikyrstiuksenvironment.crm11.dynamics.com/main.aspx?appid=42251675-59f8-ea11-a815-000d3a86b9ef&pagetype=entityrecord&etn=contact&id=" + $"{contactId}";
-                            email.Attributes["subject"] = $"New Contact {fullName} created {createdOn}";
-                            email.Attributes["description"] = $"New contact created - {linkContact}";
-                            email.Attributes["regardingobjectid"] = new EntityReference("contact", contactId);
+                            SendEmailAction["Subject"] = $"New Contact {fullName} created {createdOn}";
+                            SendEmailAction["Body"] = $"New contact created - {linkContact}";
+                            SendEmailAction["RegardingContact"] = new EntityReference("contact", contactId);
                             break;
                         case "Update":
                             if (context.PreEntityImages.Contains("UpdatedEntity") && context.PreEntityImages["UpdatedEntity"] is Entity)
                             {
                                 Entity preMessageImage = context.PreEntityImages["UpdatedEntity"];
-                                email.Attributes["subject"] = $"Contact {preMessageImage.Attributes["fullname"]} email address changed {modifiedOn}";
-                                email.Attributes["description"] = $"Old email address - {preMessageImage.Attributes["emailaddress1"]} <br> New email address {emailAddress}";
-                                email.Attributes["regardingobjectid"] = new EntityReference("contact", contactId);
-                                //throw new InvalidPluginExecutionException("test1");
+                                SendEmailAction["Subject"] = $"Contact {preMessageImage.Attributes["fullname"]} email address changed {modifiedOn}";
+                                SendEmailAction["Body"] = $"Old email address - {preMessageImage.Attributes["emailaddress1"]} <br> New email address {emailAddress}";
+                                SendEmailAction["RegardingContact"] = new EntityReference("contact", contactId);
                             }
-                           // else { throw new InvalidPluginExecutionException("test2"); }
                             break;
                         case "Delete":
                             if (context.PreEntityImages.Contains("DeletedEntity") && context.PreEntityImages["DeletedEntity"] is Entity)
                             {
                                 Entity preMessageImage = context.PreEntityImages["DeletedEntity"];
-                                email.Attributes["subject"] = $"Contact {preMessageImage.Attributes["fullname"]} was deleted {preMessageImage.Attributes["modifiedon"]}";
-                                email.Attributes["description"] = $"Contact was deleted!";
+                                SendEmailAction["Subject"] = $"Contact {preMessageImage.Attributes["fullname"]} was deleted {preMessageImage.Attributes["modifiedon"]}";
+                                SendEmailAction["Body"] = $"Contact was deleted!";
                             }
                             break;
                     }
-                    var emailId = service.Create(email);
+                    service.Execute(SendEmailAction);
                 }
             }
         }

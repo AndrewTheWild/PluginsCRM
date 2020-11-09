@@ -14,24 +14,22 @@ namespace CRMAssociateDesociatePlugin
         public void CreateEmail(EntityReference contactRef, EntityReferenceCollection accountsReference,Guid currentUserId,string subject,string description,Guid regardingObjId)
         {
             Entity contact= Service.Retrieve(contactRef.LogicalName, contactRef.Id, new ColumnSet(new string[] { "contactid","fullname" }));
-            Entity toActivityParty = new Entity("activityparty");
-            Entity fromActivityParty = new Entity("activityparty");
-            fromActivityParty["partyid"] = new EntityReference("systemuser", currentUserId);
-            toActivityParty["partyid"] = new EntityReference("contact", (Guid)contact.Attributes["contactid"]);
-            //
-            Entity email = new Entity("email");
-            email.Attributes["to"] = new Entity[] { toActivityParty };
-            email.Attributes["from"] = new Entity[] { fromActivityParty };
+            var SendEmailAction = new OrganizationRequest()
+            {
+                RequestName = "new_SendCustomEmailAction"
+            };
+            SendEmailAction["Sender"] = new EntityReference("systemuser", currentUserId);
+            SendEmailAction["RecepientEmail"] = new EntityReference("contact", (Guid)contact.Attributes["contactid"]);
             //
             foreach (var accountRef in accountsReference)
             {
                 Entity account = Service.Retrieve(accountRef.LogicalName, accountRef.Id, new ColumnSet(new string[] {"name"}));
                 var linkContact = $"https://andriikyrstiuksenvironment.crm11.dynamics.com/main.aspx?appid=42251675-59f8-ea11-a815-000d3a86b9ef&pagetype=entityrecord&etn=account&id=" + $"{account.Id}";
-                email.Attributes["subject"] = $"{subject} {account.Attributes["name"]} with contact {contact.Attributes["fullname"]}";
-                email.Attributes["description"] = $"{description} - {linkContact}";
+                SendEmailAction["Subject"] = $"{subject} {account.Attributes["name"]} with contact {contact.Attributes["fullname"]}";
+                SendEmailAction["Body"] = $"{description} - {linkContact}";
                 if(regardingObjId!=Guid.Empty)
-                    email.Attributes["regardingobjectid"] = new EntityReference("contact", regardingObjId);
-                Service.Create(email);
+                    SendEmailAction["RegardingContact"] = new EntityReference("contact", regardingObjId);
+                Service.Execute(SendEmailAction);
             }
         }
         //

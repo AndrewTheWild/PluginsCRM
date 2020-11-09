@@ -7,3 +7,8 @@
 /CRMAssociateDesociatePlugin/CRMAssociateDesociatePlugin.sln
 /CRMAssociateDesociatePlugin/PluginAD.pfx
 /CRMAssociateDesociatePlugin/.vs/
+/CreateEmailPlugin/obj/
+/CreateEmailPlugin/CreateEmailPlugin.csproj
+/CreateEmailPlugin/CreateEmailPlugin.sln
+/CreateEmailPlugin/ActionKey.pfx
+/CreateEmailPlugin/.vs/
